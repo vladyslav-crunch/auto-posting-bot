@@ -14,8 +14,10 @@ def keyGenerator(status):
     elif(status == "managing_database"):
         return [Button.inline("Управление базой данных", b"managing_database")]
     elif(status == "managing_database_buttons"):
-        return [[Button.inline("Добавить канал(ы) для парсинга", b"add_chanel")],[Button.inline("Удалить канал(ы) для парсинга", b"remove_chanel")],[Button.inline("Посмотреть все каналы в базе", b"show_chanel")], [Button.inline("Изменить канал назначения", b"change_origin_chanel")], [Button.inline("В меню", b"menu")]]
+        return [[Button.inline("Добавить канал(ы) для парсинга", b"add_chanel")],[Button.inline("Удалить канал(ы) для парсинга", b"remove_chanel")],[Button.inline("Посмотреть все каналы в базе", b"show_chanel")], [Button.inline("Изменить канал назначения", b"change_destination_chanel")], [Button.inline("В меню", b"menu")]]
     elif(status == "confirming_adding_chanel_to_database"):
         return [[Button.inline("Да, я уверен (Добавление каналов в базу)", b"adding_chanel_handler")],[Button.inline("Нет, я ошибся (написать заново)", b"add_chanel")]] 
     elif(status == "confirming_removing_chanel_to_database"):
         return [[Button.inline("Да, я уверен (Удаление каналов из базы)", b"removing_chanel_handler")],[Button.inline("Нет, я ошибся (написать заново)", b"remove_chanel")]]    
+    elif(status == "confirming_changing_destination_channel"):
+        return [[Button.inline("Да, я уверен (Добавление каналов для репоста в базу)", b"change_destination_handler")],[Button.inline("Нет, я ошибся (написать заново)", b"change_destination_chanel")]] 

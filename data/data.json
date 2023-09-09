@@ -19,9 +19,6 @@
             "channel": "asdasdadsad"
         },
         {
-            "channel": "asdasda"
-        },
-        {
             "channel": "\u0444\u0456\u0432\u0444\u0456\u0432"
         },
         {
@@ -64,5 +61,12 @@
             "channel": "asdasd"
         }
     ],
-    "channel_to_send": "new_channel_description"
+    "channels_to_send": [
+        {
+            "channel": "asdasd"
+        },
+        {
+            "channel": "asdasd"
+        }
+    ]
 }

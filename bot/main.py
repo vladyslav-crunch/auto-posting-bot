@@ -10,6 +10,7 @@ import config
 import json
 import os
 import re
+
 data_path = os.path.join('data', 'data.json')
 
 # Replace 'YOUR_API_KEY' with your actual Telegram Bot API key
@@ -76,6 +77,15 @@ async def callback(event):
     await event.respond("Пожалуйста, напишите канал(ы), которые хотите удалить в формате: \n\nname of chanel #1\nname of chanel #2\nname of chanel #3\n...", buttons = keyGenerator("menu"))
     user_states[chat_id] = "awaiting_deleting_chanel_from_database"
 
+# Creating destination screen
+
+@client.on(events.CallbackQuery(pattern=b'change_destination_chanel'))
+async def callback(event):
+    chat_id = event.chat_id
+    await client.delete_messages(event.chat_id, event.message_id) 
+    await event.respond("Пожалуйста, напишите канал(ы), в который хотите репостить в формате: \n\nname of chanel #1\nname of chanel #2\nname of chanel #3\n...", buttons = keyGenerator("menu"))
+    user_states[chat_id] = "awaiting_changing_destination_channel"
+
 # Message (text or image) handler
 
 @client.on(events.NewMessage(func=lambda event: True))
@@ -98,7 +108,14 @@ async def handle_message(event):
                 html_text = "<b>Вы уверены, что хотите удалить именно эты каналы?</b>\r\n\n" + chanels_received  
                 await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_removing_chanel_to_database"))
                 user_states[event.chat_id] = None
-                message_states[event.chat_id] = event.message.message    
+                message_states[event.chat_id] = event.message.message
+            elif current_state == "awaiting_changing_destination_channel":
+                chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
+                print(chanels_received)
+                html_text = "<b>Вы уверены, что хотите репостить именно в эты каналы?</b>\r\n\n" + chanels_received  
+                await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_changing_destination_channel"))
+                user_states[event.chat_id] = None
+                message_states[event.chat_id] = event.message.message      
 
 
 # Post sending callback handler
@@ -188,7 +205,38 @@ async def callback(event):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+# changing destination channel handler
 
+
+@client.on(events.CallbackQuery(pattern=b'change_destination_handler'))
+async def callback(event):
+    try:
+        with open(data_path, 'r') as file:
+            data = json.load(file)
+
+        # Step 2: Identify and remove the channel (e.g., "channel_name_to_delete")
+        current_message = message_states[event.chat_id]
+        channel_names_to_set = str(current_message).split()
+        print(channel_names_to_set)
+    # Step 3: Create an array of dictionaries with the specified channel names
+        new_channels_to_send = [{"channel": name} for name in channel_names_to_set]
+
+        print(new_channels_to_send)
+        data["channels_to_send"] = new_channels_to_send
+
+        with open(data_path, 'w') as file:
+            json.dump(data, file, indent=4)
+        await client.delete_messages(event.chat_id, event.message_id) 
+        await client.send_message(entity=event.chat_id, message="Каналы назначения успешно изменены!", parse_mode="html", buttons=keyGenerator("menu"))
+            
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+    except KeyError as e:
+        print(f"KeyError: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 # None-stop bot working mode
 
 with client:
