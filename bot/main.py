@@ -58,28 +58,23 @@ async def callback(event):
     await client.delete_messages(event.chat_id, event.message_id) 
     await event.respond("Пожалуйста выберите что вы хотите сделать с базой данных", buttons = keyGenerator("managing_database_buttons"))
 
-#user data base handler
+# Creating chanel adding screen
 
 @client.on(events.CallbackQuery(pattern=b'add_chanel'))
 async def callback(event):
     chat_id = event.chat_id
     await client.delete_messages(event.chat_id, event.message_id) 
-    await event.respond("Пожалуйста, напишите канал(ы), которые хотите добавить в формате: \n\nname of account #1\nname of account #2\nname of account #3\n...", buttons = keyGenerator("menu"))
-    user_states[chat_id] = "awaiting_adding_chanell_to_database"
+    await event.respond("Пожалуйста, напишите канал(ы), которые хотите добавить в формате: \n\nname of chanel #1\nname of chanel #2\nname of chanel #3\n...", buttons = keyGenerator("menu"))
+    user_states[chat_id] = "awaiting_adding_chanel_to_database"
 
-# Sending handler
+# Creating chanel delete screen
 
-@client.on(events.CallbackQuery(pattern=b'start_sending'))
+@client.on(events.CallbackQuery(pattern=b'remove_chanel'))
 async def callback(event):
-    await client.edit_message(event.sender_id, event.message_id,'Рассылка началась! Подождите, пожалуйста.')
-    current_message = message_states[event.chat_id]
-    if current_message.grouped_id:
-        text_html = repr(current_message.original_update.message.text + "SENDER_ID:" + str(event.chat_id) + 'TO_USERS="' + str(user_database[event.chat_id])+ '"').replace("\\n", "\r\n").replace("'","")
-        await client.send_message(entity=config.SPAM_BOT_USERNAME,file=current_message.messages,parse_mode="HTML", message=text_html)
-    else:
-        text_html = repr(current_message.message.text + "SENDER_ID:" + str(event.chat_id)+ 'TO_USERS="' + str(user_database[event.chat_id])+ '"').replace("\\n", "\r\n").replace("'","")
-        await client.send_message(entity = config.SPAM_BOT_USERNAME, message = text_html, parse_mode="html")
-    message_states[event.chat_id] = None
+    chat_id = event.chat_id
+    await client.delete_messages(event.chat_id, event.message_id) 
+    await event.respond("Пожалуйста, напишите канал(ы), которые хотите удалить в формате: \n\nname of chanel #1\nname of chanel #2\nname of chanel #3\n...", buttons = keyGenerator("menu"))
+    user_states[chat_id] = "awaiting_deleting_chanel_from_database"
 
 # Message (text or image) handler
 
@@ -90,14 +85,20 @@ async def handle_message(event):
             current_state = user_states[event.chat_id]
             if not event.is_private:
                 return
-            elif current_state == "awaiting_adding_chanell_to_database":
+            elif current_state == "awaiting_adding_chanel_to_database":
                 chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
                 print(chanels_received)
-                html_text = "<b>Вы уверены, что хотите добавить именно эты каналы?</b>\r\n\n" + chanels_received 
+                html_text = "<b>Вы уверены, что хотите добавить именно эты каналы?</b>\r\n\n" + chanels_received  
                 await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_adding_chanel_to_database"))
-                # await event.respond('Вы уверены, что хотите добавить именно эты каналы?', buttons=keyGenerator("confirming_adding_chanel_to_database"))
                 user_states[event.chat_id] = None
                 message_states[event.chat_id] = event.message.message
+            elif current_state == "awaiting_deleting_chanel_from_database":
+                chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
+                print(chanels_received)
+                html_text = "<b>Вы уверены, что хотите удалить именно эты каналы?</b>\r\n\n" + chanels_received  
+                await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_removing_chanel_to_database"))
+                user_states[event.chat_id] = None
+                message_states[event.chat_id] = event.message.message    
 
 
 # Post sending callback handler
@@ -111,7 +112,7 @@ async def handle_message(event):
     except Exception as e:
         print(e)
 
-# Adding chenell hadnler
+# Adding chanel handler
 
 @client.on(events.CallbackQuery(pattern=b'adding_chanel_handler'))
 async def callback(event):
@@ -148,8 +149,36 @@ async def callback(event):
         for item in channels_show_data:
             html_list += f'\n&#8226; {item}'
         await client.delete_messages(event.chat_id, event.message_id) 
-        await client.send_message(entity=event.chat_id, message=html_list, parse_mode="html")
-        await event.respond('Сейчас вы видите все каналы в базе', buttons=keyGenerator("menu"))
+        await client.send_message(entity=event.chat_id, message=html_list, parse_mode="html", buttons=keyGenerator("menu"))
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+    except KeyError as e:
+        print(f"KeyError: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+#deleting user handler
+
+@client.on(events.CallbackQuery(pattern=b'removing_chanel_handler'))
+async def callback(event):
+    try:
+        with open(data_path, 'r') as file:
+            data = json.load(file)
+
+        # Step 2: Identify and remove the channel (e.g., "channel_name_to_delete")
+        current_message = message_states[event.chat_id]
+        channel_names_to_delete = str(current_message).split()
+        if 'channels_to_listen' in data and isinstance(data['channels_to_listen'], list):
+            channels_to_listen = data['channels_to_listen']
+            updated_channels = [channel for channel in channels_to_listen if channel.get('channel') not in channel_names_to_delete]
+            data['channels_to_listen'] = updated_channels
+        # Step 4: Write the updated data back to the JSON file
+        await client.delete_messages(event.chat_id, event.message_id) 
+        await client.send_message(entity=event.chat_id, message="Каналы успешно удалены", parse_mode="html", buttons=keyGenerator("menu"))
+        with open(data_path, 'w') as file:
+            json.dump(data, file, indent=4)
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
     except FileNotFoundError as e:

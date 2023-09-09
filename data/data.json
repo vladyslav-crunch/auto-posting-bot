@@ -31,12 +31,6 @@
             "channel": "asdasdasd"
         },
         {
-            "channel": "vlad"
-        },
-        {
-            "channel": "test12"
-        },
-        {
             "channel": "test15"
         },
         {
@@ -56,6 +50,18 @@
         },
         {
             "channel": "asdfa"
+        },
+        {
+            "channel": "newaccs"
+        },
+        {
+            "channel": "newaccs2"
+        },
+        {
+            "channel": "asdasd"
+        },
+        {
+            "channel": "asdasd"
         }
     ],
     "channel_to_send": "new_channel_description"
