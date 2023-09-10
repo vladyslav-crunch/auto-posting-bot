@@ -10,7 +10,6 @@ This guide will help you set up a Telegram bot using Python and the Telegram Bot
 Before you begin, make sure you have the following:
 
 - Python installed on your system.
-- Installed all requirements 
 
 ## Step 1: Create a Telegram Bot
 
