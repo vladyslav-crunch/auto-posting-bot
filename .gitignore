@@ -3,3 +3,4 @@ cfg/__pycache__/
 bot/__pycache__/
 bot.*
 sender.*
+data/*
