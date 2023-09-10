@@ -52,4 +52,4 @@ pip install -r requirements.txt
 ```bash
 python ./bot/main.py
 ```
-4. Enter your phone number and follow the verification process
+4. Enter your phone number and follow the authentication process
