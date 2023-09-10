@@ -8,6 +8,9 @@
         },
         {
             "channel": "testfrom123"
+        },
+        {
+            "channel": "testfrom123"
         }
     ],
     "channels_to_send": [
