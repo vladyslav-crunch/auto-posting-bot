@@ -26,7 +26,7 @@ Before you begin, make sure you have the following:
 
 ## Step 3: Set Up Your Environment
 
-1. Edit a `.env` file in the root directory of your project and add the following lines, replacing `<YOUR_TOKEN>`, `<YOUR_API_ID>`, and `<YOUR_API_HASH>` with the values you obtained in the previous steps:
+1. Edit a `.env` file in the root directory of your project and add the following lines, replacing `<MANAGER_APP_ID>`, `<MANAGER_API_HASH>`, and `<MANAGER_BOT_TOKEN>` with the values you obtained in the previous steps:
 
 2. Save the `.env` file.
 
@@ -41,7 +41,7 @@ Before you begin, make sure you have the following:
 ```bash
 
 pip install -r requirements.txt
-
+```
 ## Step 5: Run Your Bot
 
 1. Open your terminal or command prompt.
