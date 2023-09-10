@@ -1,3 +1,5 @@
 __pycache__/
+cfg/__pycache__/
+bot/__pycache__/
 bot.*
-session.*
+sender.*

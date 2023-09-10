@@ -1,8 +1,9 @@
 from telethon.sync import TelegramClient
 from telethon.tl import functions, types
 from telethon import events, Button
-from telethon.types import Message
+from telethon.types import Message, InputPeerChannel
 import ast
+import asyncio
 from keyGen import keyGenerator
 import sys
 sys.path.append('./cfg')
@@ -11,14 +12,42 @@ import json
 import os
 import re
 
+
 data_path = os.path.join('data', 'data.json')
+channels_to_listen=[]
+channels_to_send=[]
+
+# Check if the data.json file exists, and create it with an empty dictionary if it doesn't
+def check_and_update_data():
+    if not os.path.exists(data_path):
+        inital_data = {"channels_to_listen":[], "channels_to_send":[]}
+        with open(data_path, 'w') as json_file:
+            json.dump(inital_data, json_file, indent=4)
+    else:
+        with open(data_path, 'r') as file:
+            data = json.load(file)
+            for ctl in data["channels_to_listen"]:
+                try:
+                    ctle = sender.get_entity(ctl["channel"])
+                    channels_to_listen.append(ctle)
+                except Exception as e:
+                    print(e)
+            for cts in data["channels_to_send"]:
+                try:
+                    ctse = sender.get_entity(cts["channel"])
+                    channels_to_send.append(ctse)
+                except Exception as e:
+                    print(e)
 
 # Replace 'YOUR_API_KEY' with your actual Telegram Bot API key
 client = TelegramClient('bot', config.MANAGER_APP_ID, config.MANAGER_API_HASH).start(bot_token=config.MANAGER_BOT_TOKEN)
+sender = TelegramClient('sender', config.MANAGER_APP_ID, config.MANAGER_API_HASH)
 # Start the client
-
 client.parse_mode = 'HTML'
+sender.parse_mode = 'HTML'
 client.start()
+sender.start()
+
 
 # Dictionary to store user, message and database states
 user_states = {}
@@ -87,7 +116,6 @@ async def callback(event):
     user_states[chat_id] = "awaiting_changing_destination_channel"
 
 # Message (text or image) handler
-
 @client.on(events.NewMessage(func=lambda event: True))
 async def handle_message(event):
     if not event.grouped_id:
@@ -97,37 +125,23 @@ async def handle_message(event):
                 return
             elif current_state == "awaiting_adding_chanel_to_database":
                 chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
-                print(chanels_received)
                 html_text = "<b>Вы уверены, что хотите добавить именно эты каналы?</b>\r\n\n" + chanels_received  
                 await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_adding_chanel_to_database"))
                 user_states[event.chat_id] = None
                 message_states[event.chat_id] = event.message.message
             elif current_state == "awaiting_deleting_chanel_from_database":
                 chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
-                print(chanels_received)
                 html_text = "<b>Вы уверены, что хотите удалить именно эты каналы?</b>\r\n\n" + chanels_received  
                 await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_removing_chanel_to_database"))
                 user_states[event.chat_id] = None
                 message_states[event.chat_id] = event.message.message
             elif current_state == "awaiting_changing_destination_channel":
                 chanels_received = repr(event.message.text).replace("\\n", "\r\n").replace("'", "")
-                print(chanels_received)
                 html_text = "<b>Вы уверены, что хотите репостить именно в эты каналы?</b>\r\n\n" + chanels_received  
                 await client.send_message(entity=event.chat_id, message=html_text, parse_mode="html", buttons=keyGenerator("confirming_changing_destination_channel"))
                 user_states[event.chat_id] = None
-                message_states[event.chat_id] = event.message.message      
-
-
-# Post sending callback handler
-
-@client.on(events.NewMessage(from_users=[config.SPAM_BOT_USERNAME]))
-async def handle_message(event):
-    try:
-        response = ast.literal_eval(event.message.message)
-        message = (f'<i>Успешно отправлено</i> <b>{response["sent"]}</b> <i>пользователям,</i> 'f'<i>заблокировано</i> <b>{response["blocked"]}</b>')
-        await client.send_message(entity=response["sender_id"], message=message ,parse_mode='html', buttons=keyGenerator("menu"))
-    except Exception as e:
-        print(e)
+                message_states[event.chat_id] = event.message.message
+        
 
 # Adding chanel handler
 
@@ -136,7 +150,6 @@ async def callback(event):
     await client.edit_message(event.sender_id, event.message_id,'Каналы успешно добалены!', buttons=keyGenerator("menu"))
     current_message = message_states[event.chat_id]
     data_to_add = str(current_message).split()
-    print(data_to_add)
     with open(data_path, 'r') as file:
         data = json.load(file)
     for new_channel_name in data_to_add:
@@ -147,7 +160,7 @@ async def callback(event):
             pass
     with open(data_path, 'w') as file:
         json.dump(data, file, indent=4)
-
+    check_and_update_data()
 # Show chanel handler        
 @client.on(events.CallbackQuery(pattern=b'show_chanel'))
 async def callback(event):
@@ -161,7 +174,6 @@ async def callback(event):
     # Iterate through the channels and print each one
         for channel in channels_to_listen:
            channels_show_data.append(channel["channel"])
-        print(channels_show_data)
         html_list = '<b>Каналы для парсинга:</b>\n'
         for item in channels_show_data:
             html_list += f'\n&#8226; {item}'
@@ -204,7 +216,7 @@ async def callback(event):
         print(f"KeyError: {e}")
     except Exception as e:
         print(f"An error occurred: {e}")
-
+    check_and_update_data()
 # changing destination channel handler
 
 
@@ -217,11 +229,9 @@ async def callback(event):
         # Step 2: Identify and remove the channel (e.g., "channel_name_to_delete")
         current_message = message_states[event.chat_id]
         channel_names_to_set = str(current_message).split()
-        print(channel_names_to_set)
     # Step 3: Create an array of dictionaries with the specified channel names
         new_channels_to_send = [{"channel": name} for name in channel_names_to_set]
 
-        print(new_channels_to_send)
         data["channels_to_send"] = new_channels_to_send
 
         with open(data_path, 'w') as file:
@@ -237,9 +247,28 @@ async def callback(event):
         print(f"KeyError: {e}")
     except Exception as e:
         print(f"An error occurred: {e}")
-# None-stop bot working mode
+    check_and_update_data()
 
-with client:
+
+#Repost everything from channels to listen
+@sender.on(events.NewMessage(chats=channels_to_listen))
+async def handle_message(event):
+    if event.grouped_id:
+        return
+    for destination_channel in channels_to_send:
+        await sender.send_message(entity=destination_channel, message=event.message)
+
+@sender.on(events.Album(chats=channels_to_listen))
+async def handle_message(event):
+    for destination_channel in channels_to_send:
+        await sender.send_message(entity=destination_channel, file=event.messages, message=repr(event.original_update.message.text).replace("'","").replace("\\n","\r\n"), parse_mode="html")
+
+# None-stop bot working mode
+check_and_update_data()
+
+with client, sender:
+    sender.run_until_disconnected()
     client.run_until_disconnected()
+
 
 

@@ -1,72 +1,18 @@
 {
     "channels_to_listen": [
         {
-            "channel": "asdasd"
+            "channel": "ukrnastup"
         },
         {
-            "channel": "\u0444\u0456\u0432\u0456\u0444"
+            "channel": "PRO_invest_channel"
         },
         {
-            "channel": "\u0444\u0456\u0432\u0444\u0456\u0432\u0444\u0456\u0432"
-        },
-        {
-            "channel": "\u0444\u0456\u0432\u0444\u0456\u0432\u0444\u0456\u0432"
-        },
-        {
-            "channel": "asdsad"
-        },
-        {
-            "channel": "asdasdadsad"
-        },
-        {
-            "channel": "\u0444\u0456\u0432\u0444\u0456\u0432"
-        },
-        {
-            "channel": "asdsaads"
-        },
-        {
-            "channel": "asdasdasd"
-        },
-        {
-            "channel": "test15"
-        },
-        {
-            "channel": "test18"
-        },
-        {
-            "channel": "asdasd"
-        },
-        {
-            "channel": "asdasd"
-        },
-        {
-            "channel": "asdasdsa"
-        },
-        {
-            "channel": "asdf"
-        },
-        {
-            "channel": "asdfa"
-        },
-        {
-            "channel": "newaccs"
-        },
-        {
-            "channel": "newaccs2"
-        },
-        {
-            "channel": "asdasd"
-        },
-        {
-            "channel": "asdasd"
+            "channel": "testfrom123"
         }
     ],
     "channels_to_send": [
         {
-            "channel": "asdasd"
-        },
-        {
-            "channel": "asdasd"
+            "channel": "testfrom1233"
         }
     ]
 }
