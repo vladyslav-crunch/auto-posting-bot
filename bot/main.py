@@ -170,13 +170,24 @@ async def callback(event):
 
     # Access the "channels_to_listen" array
         channels_to_listen = data["channels_to_listen"]
-        channels_show_data = []
+        channels_to_send = data["channels_to_send"]
+        channels_to_listen_data = []
+        channels_to_send_data = []
     # Iterate through the channels and print each one
+
         for channel in channels_to_listen:
-           channels_show_data.append(channel["channel"])
+           channels_to_listen_data.append(channel["channel"])
+        for channel in channels_to_send:
+           channels_to_send_data.append(channel["channel"])   
         html_list = '<b>Каналы для парсинга:</b>\n'
-        for item in channels_show_data:
+        for item in channels_to_listen_data:
             html_list += f'\n&#8226; {item}'
+
+
+        html_list += '\n\n<b>Каналы назначения:</b>\n'
+        for item in channels_to_send_data:
+            html_list += f'\n&#8226; {item}'
+
         await client.delete_messages(event.chat_id, event.message_id) 
         await client.send_message(entity=event.chat_id, message=html_list, parse_mode="html", buttons=keyGenerator("menu"))
     except json.JSONDecodeError as e:
