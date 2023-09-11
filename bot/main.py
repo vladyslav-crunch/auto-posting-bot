@@ -13,12 +13,16 @@ import os
 import re
 
 
-data_path = os.path.join('data', 'data.json')
+current_directory = os.path.dirname(os.path.abspath(__file__))
+root_data_folder = os.path.join(os.path.dirname(current_directory), 'data')
+data_path = os.path.join(root_data_folder, 'data.json')
 channels_to_listen=[]
 channels_to_send=[]
 
-# Check if the data.json file exists, and create it with an empty dictionary if it doesn't
+
 def check_and_update_data():
+    if not os.path.exists(root_data_folder):
+        os.makedirs(root_data_folder)
     if not os.path.exists(data_path):
         inital_data = {"channels_to_listen":[], "channels_to_send":[]}
         with open(data_path, 'w') as json_file:
